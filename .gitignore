@@ -1,0 +1,34 @@
+# ── secrets (never commit) ──────────────────────────────────
+app.env
+.env
+*.pem
+*.key
+
+# ── python ──────────────────────────────────────────────────
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# ── terraform ───────────────────────────────────────────────
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+
+# ── deploy / runtime artifacts ──────────────────────────────
+.instance_id
+.public_ip
+*.zip
+*.log
+
+# ── os / editor ─────────────────────────────────────────────
+.DS_Store
+*.swp
+.idea/
+.vscode/

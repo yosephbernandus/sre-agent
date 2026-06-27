@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CodeCraft — On-Call SRE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0b; --surface:#111113; --surface2:#0d0d0f; --raised:#16161a;
+    --hair:rgba(255,255,255,.10); --hair2:rgba(255,255,255,.16);
+    --fg:#f3f3f4; --mut:#abacb4; --faint:#7c7c86;
+    --ink:#ffffff;                       /* the only "accent" — high-contrast mono */
+    --p1:#ff5d62; --p2:#f0a23a; --p3:#b7b8c0; --p4:#85858f;
+    --sans:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}html,body{height:100%}
+  body{margin:0;font-family:var(--sans);font-size:14px;line-height:1.55;background:var(--bg);color:var(--fg);
+       -webkit-font-smoothing:antialiased}
+  .app{display:grid;grid-template-columns:248px 1fr;height:100vh}
+
+  /* sidebar */
+  aside{background:var(--surface2);border-right:1px solid var(--hair);display:flex;flex-direction:column;padding:20px 18px;gap:26px;overflow-y:auto}
+  .brand{display:flex;align-items:baseline;gap:9px}
+  .brand .mk{font-family:var(--mono);font-weight:600;font-size:13px;border:1px solid var(--hair2);padding:2px 6px;border-radius:4px;color:var(--ink)}
+  .brand h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.1px}
+  .brand .sub{font-size:11px;color:var(--faint);font-family:var(--mono)}
+  .status{font-family:var(--mono);font-size:11px;color:var(--mut);display:flex;align-items:center;gap:7px}
+  .status b{width:5px;height:5px;background:var(--mut);border-radius:1px;display:inline-block}
+  h2{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--faint);margin:0 0 11px;font-weight:500}
+  .route{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--hair);font-size:12.5px}
+  .route:last-child{border-bottom:0}
+  .route .d{color:var(--mut)}
+  .route .m{font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .route.up .m{color:var(--ink)}
+  .route.up .d{color:var(--fg)}
+  .legend{display:flex;flex-direction:column;gap:9px;font-size:12px;color:var(--mut)}
+  .legend span{font-family:var(--mono);font-size:10px;color:var(--faint);width:64px;display:inline-block;text-transform:uppercase;letter-spacing:.5px}
+  .links{margin-top:auto;display:flex;flex-direction:column;gap:2px}
+  .links a{color:var(--mut);text-decoration:none;font-size:12px;padding:6px 0}
+  .links a:hover{color:var(--ink)}
+
+  /* command */
+  main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+  .cmd{flex:none;padding:22px 30px 16px;border-bottom:1px solid var(--hair)}
+  .cmd .lbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--faint);margin-bottom:11px}
+  form{display:flex;gap:8px}
+  .inwrap{flex:1;position:relative;display:flex;align-items:center}
+  .inwrap .pfx{position:absolute;left:14px;font-family:var(--mono);color:var(--faint);font-size:14px}
+  input{flex:1;background:var(--surface);border:1px solid var(--hair2);color:var(--fg);border-radius:7px;
+        padding:12px 14px 12px 32px;font-size:14px;font-family:var(--sans);outline:none}
+  input::placeholder{color:var(--faint)}
+  input:focus{border-color:var(--mut)}
+  .send{background:var(--ink);color:#0a0a0b;border:0;border-radius:7px;padding:0 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:var(--sans)}
+  .send:disabled{opacity:.4;cursor:default}
+  .ghost{background:transparent;border:1px solid var(--hair2);color:var(--mut);border-radius:7px;padding:0 13px;font-size:13px;cursor:pointer}
+  .ghost:hover{color:var(--fg)}
+  .ex{display:flex;gap:14px;flex-wrap:wrap;margin-top:13px}
+  .ex span{font-size:12.5px;color:var(--mut);cursor:pointer;border-bottom:1px solid var(--hair);padding-bottom:1px}
+  .ex span:hover{color:var(--fg);border-color:var(--hair2)}
+
+  /* stats */
+  .stats{flex:none;display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--hair)}
+  .stat{padding:14px 30px;border-right:1px solid var(--hair)}
+  .stat:last-child{border-right:0}
+  .stat .v{font-family:var(--mono);font-size:22px;font-weight:500;letter-spacing:-1px}
+  .stat .k{font-family:var(--mono);font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:1.5px;margin-top:3px}
+
+  /* feed */
+  #feed{flex:1;overflow-y:auto;padding:24px 30px;display:flex;flex-direction:column;gap:18px}
+  .empty{color:var(--faint);margin-top:9vh;text-align:center;font-family:var(--mono);font-size:13px}
+  .card{border:1px solid var(--hair);border-radius:10px;background:var(--surface);overflow:hidden;flex:none}
+  .q{padding:12px 18px;border-bottom:1px solid var(--hair);color:var(--mut);font-family:var(--mono);font-size:12.5px;display:flex;gap:9px}
+  .q .a{color:var(--faint)}
+  .chead{display:flex;align-items:center;gap:12px;padding:15px 18px 0}
+  .sev{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:1px;padding:3px 9px;border-radius:5px;border:1px solid}
+  .sev.P1,.sev.BLOCKED{color:var(--p1);border-color:rgba(255,93,98,.4);background:rgba(255,93,98,.13)}
+  .sev.P2,.sev.WITHHELD{color:var(--p2);border-color:rgba(240,162,58,.4);background:rgba(240,162,58,.13)}
+  .sev.P3{color:var(--p3);border-color:var(--hair2);background:rgba(255,255,255,.05)}
+  .sev.P4,.sev.OK{color:var(--p4);border-color:var(--hair2);background:rgba(255,255,255,.04)}
+  .sev.TUNE{color:#0a0a0b;border-color:var(--ink);background:var(--ink)}
+  .ctag{font-family:var(--mono);font-size:12px;color:var(--mut)}
+  .cbody{padding:12px 18px 16px;white-space:pre-wrap;word-wrap:break-word;font-size:14.5px;line-height:1.7;color:var(--fg)}
+  .ev{padding:0 18px 14px;display:flex;gap:8px;flex-wrap:wrap}
+  .ev span{font-family:var(--mono);font-size:10.5px;color:var(--mut);border:1px solid var(--hair2);border-radius:5px;padding:2px 7px}
+  .cfoot{display:flex;align-items:center;gap:22px;padding:12px 18px;border-top:1px solid var(--hair);
+         font-family:var(--mono);font-size:11.5px;color:var(--mut)}
+  .gauge{display:flex;align-items:center;gap:9px;color:var(--mut)}
+  .bar{width:88px;height:6px;border-radius:99px;background:var(--hair2);overflow:hidden}
+  .bar > i{display:block;height:100%}
+  .work{display:flex;flex-direction:column;gap:11px}
+  .work .head{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12.5px;color:var(--fg)}
+  .spin{width:13px;height:13px;border:2px solid var(--hair2);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;flex:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .work .el{color:var(--faint)}
+  .steps{display:flex;flex-direction:column;gap:7px;font-family:var(--mono);font-size:11.5px}
+  .steps div{color:var(--faint);display:flex;align-items:center;gap:9px;transition:color .25s}
+  .steps div .mk{width:5px;height:5px;border-radius:50%;background:currentColor;flex:none;opacity:.5}
+  .steps div.active{color:var(--fg)}
+  .steps div.active .mk{opacity:1;animation:blink 1s infinite}
+  .steps div.done{color:var(--mut)}.steps div.done .mk{background:var(--p3);opacity:1}
+  @keyframes blink{50%{opacity:.25}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><span class="mk">CC</span><h1>CodeCraft</h1></div>
+    <div class="brand sub">On-Call SRE · {{ ml_app }}</div>
+    <div class="status"><b></b> agentless · us5</div>
+
+    <section><h2>Model Routing</h2><div id="routes"></div></section>
+
+    <section><h2>Pipeline</h2>
+      <div class="legend">
+        <div><span>guard</span> PII / injection</div>
+        <div><span>mcp</span> Datadog read-only</div>
+        <div><span>firewall</span> grounding gate</div>
+        <div><span>tune</span> auto re-route</div>
+      </div>
+    </section>
+
+    <div class="links">
+      <a href="https://{{ dd_host }}/llm/traces?query=%40ml_app%3A{{ ml_app }}" target="_blank">LLM Observability →</a>
+      <a href="https://{{ dd_host }}/dashboard/lists" target="_blank">Dashboards →</a>
+    </div>
+  </aside>
+
+  <main>
+    <div class="cmd">
+      <div class="lbl">Incident Console</div>
+      <form id="f">
+        <div class="inwrap"><span class="pfx">/</span>
+          <input id="m" autocomplete="off" placeholder="describe an incident — vague queries are withheld by the firewall">
+        </div>
+        <button class="send" id="send" type="submit">Investigate</button>
+        <button class="ghost" id="reset" type="button">Clear</button>
+      </form>
+      <div class="ex" id="ex">
+        <span>Connection pool exhausted on payments-db</span>
+        <span>5xx spike on checkout</span>
+        <span>Any monitors currently alerting?</span>
+        <span>analyze my performance</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v" id="s-count">0</div><div class="k">Investigations</div></div>
+      <div class="stat"><div class="v" id="s-ground">—</div><div class="k">Avg grounding</div></div>
+      <div class="stat"><div class="v" id="s-cost">$0</div><div class="k">Cost</div></div>
+      <div class="stat"><div class="v" id="s-withheld">0</div><div class="k">Withheld</div></div>
+    </div>
+
+    <div id="feed"><div class="empty" id="empty">no investigations yet — describe an incident above</div></div>
+  </main>
+</div>
+
+<script>
+const DOMAINS=["db","network","app","infra"];
+const feed=document.getElementById('feed'),input=document.getElementById('m'),form=document.getElementById('f'),send=document.getElementById('send');
+let n=0,costSum=0,gSum=0,gN=0,withheld=0;
+const fmt=m=>(m||'').split('.').pop().replace(/-v\d.*$/,'');
+
+function renderRoutes(r){r=r||{};const el=document.getElementById('routes');el.innerHTML='';
+  DOMAINS.forEach(d=>{const m=r[d]||r.default||'';const up=!fmt(m).includes('micro');
+    const row=document.createElement('div');row.className='route'+(up?' up':'');
+    row.innerHTML=`<span class="d">${d}</span><span class="m">${fmt(m)}</span>`;el.appendChild(row);});}
+renderRoutes({{ routing | tojson }});
+
+function sevOf(j){if(j.guardrail_blocked)return'BLOCKED';if(j.withheld)return'WITHHELD';
+  if(j.kind==='self_tune'||j.kind==='control')return'TUNE';
+  const m=(j.answer||'').match(/\bP[1-4]\b/);return m?m[0]:'OK';}
+const STEPS=["classifying incident","querying logs · dd/mcp","querying metrics · dd/mcp","checking monitors · dd/mcp","scoring grounding · firewall"];
+function card(q){document.getElementById('empty')?.remove();
+  const c=document.createElement('div');c.className='card';
+  c.innerHTML=`<div class="q"><span class="a">/</span><span>${q}</span></div>
+    <div class="chead"><span class="sev OK">RUNNING</span><span class="ctag"></span></div>
+    <div class="cbody"><div class="work">
+      <div class="head"><span class="spin"></span><span>investigating</span><span class="el">0.0s</span></div>
+      <div class="steps">${STEPS.map(s=>`<div><span class="mk"></span>${s}</div>`).join('')}</div>
+    </div></div>`;
+  feed.prepend(c);
+  const steps=[...c.querySelectorAll('.steps div')], el=c.querySelector('.el');
+  let i=0; steps[0].classList.add('active');
+  c._step=setInterval(()=>{ if(i<steps.length-1){steps[i].classList.remove('active');steps[i].classList.add('done');i++;steps[i].classList.add('active');} },1100);
+  const t0=Date.now(); c._el=setInterval(()=>{el.textContent=((Date.now()-t0)/1000).toFixed(1)+'s';},100);
+  return c;}
+function stopWork(c){clearInterval(c._step);clearInterval(c._el);}
+function fill(c,j){
+  stopWork(c);
+  const sev=sevOf(j);const s=c.querySelector('.sev');s.className='sev '+sev;s.textContent=sev;
+  c.querySelector('.cbody').textContent=j.answer||j.error||'(no answer)';
+  if(j.kind==='answer'){
+    c.querySelector('.ctag').textContent=`${j.domain} · ${fmt(j.model)}`;
+    if((j.tools_used||[]).length){const ev=document.createElement('div');ev.className='ev';
+      ev.innerHTML=j.tools_used.map(t=>`<span>${t.replace('search_datadog_','dd/')}</span>`).join('');c.appendChild(ev);}
+    const g=j.eval_score!=null?j.eval_score:0;
+    const f=document.createElement('div');f.className='cfoot';
+    f.innerHTML=`<span class="gauge">grounding <span class="bar"><i style="width:${g*100}%;background:${g<0.5?'var(--p1)':'var(--ink)'}"></i></span> ${j.eval_score}</span>
+      <span>$${j.cost_usd}</span><span>${j.latency_ms}ms</span><span>${j.bedrock_calls} calls</span>`;
+    c.appendChild(f);
+    n++;costSum+=j.cost_usd||0;if(j.eval_score!=null){gSum+=j.eval_score;gN++;}if(j.withheld)withheld++;
+    s_count.textContent=n;s_ground.textContent=gN?(gSum/gN).toFixed(2):'—';
+    s_cost.textContent='$'+costSum.toFixed(4);s_withheld.textContent=withheld;
+  } else { c.querySelector('.ctag').textContent=j.kind.replace('_',' '); }
+  if(j.routing)renderRoutes(j.routing);
+}
+const s_count=document.getElementById('s-count'),s_ground=document.getElementById('s-ground'),s_cost=document.getElementById('s-cost'),s_withheld=document.getElementById('s-withheld');
+async function ask(q){send.disabled=true;const c=card(q);input.value='';
+  try{const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q})});fill(c,await r.json());}
+  catch(e){stopWork(c);c.querySelector('.sev').className='sev BLOCKED';c.querySelector('.sev').textContent='ERROR';c.querySelector('.cbody').textContent='error: '+e;}
+  send.disabled=false;input.focus();}
+form.onsubmit=e=>{e.preventDefault();const t=input.value.trim();if(t)ask(t);};
+document.getElementById('ex').onclick=e=>{if(e.target.tagName==='SPAN')ask(e.target.textContent);};
+document.getElementById('reset').onclick=async()=>{await fetch('/reset',{method:'POST'});location.reload();};
+</script>
+</body>
+</html>
