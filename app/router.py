@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 
+from app import state
 from app.config import Config
 
 logger = logging.getLogger(__name__)
@@ -21,15 +22,18 @@ class ModelRouter:
         # copy so runtime mutations don't leak back into the Config default
         self._routing: dict[str, str] = dict(config.model_routing)
         self._default = config.bedrock_model_default
+        # re-apply any overrides persisted from prior self-tune "apply" actions
+        self._routing.update(state.ROUTING_OVERRIDES)
 
     def get_model(self, domain: str) -> str:
         """Return the model ID for a domain, falling back to the default."""
         return self._routing.get(domain, self._routing.get("default", self._default))
 
     def apply_recommendation(self, domain: str, model_id: str) -> None:
-        """Update the routing for a domain (used by self-tune apply)."""
+        """Update the routing for a domain (used by self-tune apply), and persist it."""
         prev = self._routing.get(domain)
         self._routing[domain] = model_id
+        state.set_routing_override(domain, model_id)  # survives restart
         logger.info("Routing updated: %s %s -> %s", domain, prev, model_id)
 
     def get_routing_table(self) -> dict[str, str]:

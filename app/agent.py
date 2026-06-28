@@ -14,7 +14,7 @@ import boto3
 from ddtrace.llmobs import LLMObs
 from ddtrace.llmobs.decorators import agent, tool
 
-from app import self_tune, state
+from app import memory, self_tune, state
 from app.config import Config
 from app.firewall import ESCALATION_MESSAGE, evaluate_and_gate
 from app.guardrails import build_guardrail_config, check_input
@@ -95,6 +95,7 @@ class AgentResult:
     tools_used: list[str] = field(default_factory=list)
     guardrail_blocked: bool = False
     routing_table: dict[str, str] | None = None
+    recalled: int = 0  # # of prior incidents recalled from ops memory
 
 
 def classify_domain(message: str) -> str:
@@ -174,7 +175,15 @@ def run_turn(
     except MCPClientError as exc:
         logger.warning("MCP init failed: %s", exc)
 
-    messages = list(history) + [{"role": "user", "content": [{"text": safe_message}]}]
+    # Ops Memory recall (LLM-Wiki): pull similar past incidents as context.
+    prior = memory.recall(domain, safe_message)
+    recalled_n = prior.count("\n## ") + (1 if prior.startswith("## ") else 0) if prior else 0
+    user_text = safe_message
+    if prior:
+        user_text += (
+            "\n\n[Prior incidents from ops memory — reuse the resolution if this matches]\n" + prior
+        )
+    messages = list(history) + [{"role": "user", "content": [{"text": user_text}]}]
     bedrock = boto3.client("bedrock-runtime", region_name=config.aws_region)
     guardrail_cfg = build_guardrail_config(config)
 
@@ -248,7 +257,8 @@ def run_turn(
             continue
 
         answer = "".join(b.get("text", "") for b in out_msg["content"])
-        answer = re.sub(r"<thinking>.*?</thinking>", "", answer, flags=re.S).strip()
+        answer = re.sub(r"<thinking>.*?</thinking>", "", answer, flags=re.S)
+        answer = re.sub(r"</?answer>", "", answer).strip()
         break
 
     latency_ms = (time.perf_counter() - t0) * 1000
@@ -274,6 +284,11 @@ def run_turn(
     history.append({"role": "assistant", "content": [{"text": answer or "(no answer)"}]})
 
     state.record_turn(domain, model, score, withheld)
+    # Remember only grounded answers (never memorize a withheld hallucination).
+    if not withheld and answer and "Unable to conclude" not in answer:
+        sev_m = re.search(r"\bP[1-4]\b", answer)
+        memory.remember(domain, safe_message, sev_m.group(0) if sev_m else "P?",
+                        answer, model, score)
     LLMObs.annotate(
         output_data=display_text,
         tags={"domain": domain, "model": model, "withheld": str(withheld)},
@@ -295,4 +310,5 @@ def run_turn(
         bedrock_calls=calls,
         tools_used=tools_used,
         routing_table=router.get_routing_table(),
+        recalled=recalled_n,
     )

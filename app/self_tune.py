@@ -24,6 +24,35 @@ logger = logging.getLogger(__name__)
 _TRIGGERS = ("analyze my performance", "analyze performance", "self-tune", "self tune", "analyze")
 _CHEAP = {"us.amazon.nova-micro-v1:0", "us.amazon.nova-lite-v1:0"}
 _UPGRADE_TO = "us.amazon.nova-pro-v1:0"
+_NARRATE_MODEL = "us.amazon.nova-lite-v1:0"
+
+
+def _narrate(config: Config, facts: str) -> str:
+    """LLM writes a 1-2 sentence explanation of the (already-decided) analysis.
+
+    The decision + numbers are computed deterministically; the model only
+    explains them — it must not change any number or decision. Fails soft.
+    """
+    try:
+        import boto3
+
+        client = boto3.client("bedrock-runtime", region_name=config.aws_region)
+        prompt = (
+            "You are an SRE platform analyst. Below is a deterministic performance "
+            "analysis of an AI agent and the routing decision already made. In 1-2 "
+            "sentences, explain to the on-call engineer what's happening and why the "
+            "decision makes sense. Use ONLY the numbers/decision below — do not invent "
+            "or change anything.\n\n" + facts
+        )
+        resp = client.converse(
+            modelId=_NARRATE_MODEL,
+            messages=[{"role": "user", "content": [{"text": prompt}]}],
+            inferenceConfig={"maxTokens": 120, "temperature": 0.3},
+        )
+        return "".join(b.get("text", "") for b in resp["output"]["message"]["content"]).strip()
+    except Exception as exc:
+        logger.debug("narrate failed: %s", exc)
+        return ""
 
 
 def is_self_tune_trigger(lowered_message: str) -> bool:
@@ -102,7 +131,11 @@ def analyze_performance(config: Config, mcp_client: DatadogMCPClient | None) -> 
         state.set_recommendation(None)
         lines.append("")
         lines.append("No routing change needed — grounding is healthy across domains.")
-    return "\n".join(lines) + mcp_note
+
+    facts = "\n".join(lines)
+    note = _narrate(config, facts)
+    body = (note + "\n\n" + facts) if note else facts
+    return body + mcp_note
 
 
 def apply_last_recommendation(router: ModelRouter) -> str:

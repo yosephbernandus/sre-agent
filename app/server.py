@@ -17,7 +17,7 @@ from fastapi import FastAPI, Request  # noqa: E402
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse  # noqa: E402
 from fastapi.templating import Jinja2Templates  # noqa: E402
 
-from app import agent  # noqa: E402
+from app import agent, memory, triage  # noqa: E402
 from app.config import Config  # noqa: E402
 from app.router import ModelRouter  # noqa: E402
 
@@ -83,6 +83,7 @@ async def chat(request: Request):
             "tools_used": result.tools_used,
             "guardrail_blocked": result.guardrail_blocked,
             "routing": result.routing_table,
+            "recalled": result.recalled,
         }
     )
 
@@ -91,6 +92,63 @@ async def chat(request: Request):
 async def reset():
     history.clear()
     return {"ok": True}
+
+
+@app.post("/triage")
+async def triage_endpoint(request: Request):
+    """Datadog monitor webhook → auto-triage → Slack. Point C."""
+    if config.triage_token:
+        if request.headers.get("X-Triage-Token") != config.triage_token:
+            return JSONResponse({"error": "unauthorized"}, status_code=401)
+    payload = await request.json()
+    try:
+        alert, result, slacked = triage.triage(payload, config, router)
+    except Exception as exc:
+        logger.exception("triage failed")
+        return JSONResponse({"error": str(exc)}, status_code=500)
+    finally:
+        LLMObs.flush()
+    return JSONResponse({
+        "alert": alert["title"],
+        "withheld": result.withheld,
+        "eval_score": result.eval_score,
+        "domain": result.domain,
+        "model": result.model,
+        "answer": result.display_text,
+        "slack_posted": slacked,
+    })
+
+
+@app.get("/memory.md", response_class=PlainTextResponse)
+async def ops_memory_raw():
+    """Raw markdown of the Ops Memory Wiki."""
+    return memory.read_all()
+
+
+@app.get("/memory", response_class=HTMLResponse)
+async def ops_memory():
+    """The compounding Ops Memory Wiki, rendered."""
+    import json as _json
+
+    md = _json.dumps(memory.read_all())
+    return f"""<!doctype html><html lang=en><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1"><title>Ops Memory · CodeCraft</title>
+<link rel=preconnect href=https://fonts.googleapis.com>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel=stylesheet>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  body{{margin:0;background:#070a0e;color:#eaeef4;font-family:'IBM Plex Sans',sans-serif;line-height:1.6}}
+  .wrap{{max-width:760px;margin:0 auto;padding:40px 24px 80px}}
+  a.back{{color:#8b94a4;text-decoration:none;font-family:'IBM Plex Mono',monospace;font-size:12px}}
+  a.back:hover{{color:#fff}}
+  h1{{font-size:20px;letter-spacing:-.2px}} h2{{font-size:14px;margin-top:26px;color:#fff;border-top:1px solid rgba(255,255,255,.1);padding-top:18px}}
+  ul{{padding-left:18px}} li{{margin:3px 0;color:#abacb4;font-size:13.5px}}
+  code{{font-family:'IBM Plex Mono',monospace}}
+  p{{color:#abacb4}}
+</style></head>
+<body><div class=wrap><a class=back href="/">&larr; console</a><div id=doc></div></div>
+<script>document.getElementById('doc').innerHTML=marked.parse({md});</script>
+</body></html>"""
 
 
 @app.get("/healthz", response_class=PlainTextResponse)

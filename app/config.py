@@ -29,6 +29,10 @@ class Config:
     max_iterations: int = 10
     firewall_threshold: float = 0.5
 
+    # Auto-triage (Point C): Datadog webhook -> agent -> Slack
+    slack_webhook_url: str = ""   # Slack incoming webhook (optional)
+    triage_token: str = ""        # shared secret required on POST /triage (optional)
+
     # Model routing (mutable at runtime)
     model_routing: dict = field(default_factory=lambda: {
         "db": "us.amazon.nova-lite-v1:0",
@@ -58,4 +62,6 @@ class Config:
             dd_llmobs_ml_app=os.getenv("DD_LLMOBS_ML_APP", "sre-oncall-agent"),
             max_iterations=int(os.getenv("MAX_ITERATIONS", "10")),
             firewall_threshold=float(os.getenv("FIREWALL_THRESHOLD", "0.5")),
+            slack_webhook_url=os.getenv("SLACK_WEBHOOK_URL", ""),
+            triage_token=os.getenv("FT_TRIAGE_TOKEN", ""),
         )

@@ -122,7 +122,8 @@
     </section>
 
     <div class="links">
-      <a href="https://{{ dd_host }}/llm/traces?query=%40ml_app%3A{{ ml_app }}" target="_blank">LLM Observability →</a>
+      <a href="/memory" target="_blank">Ops Memory (wiki) →</a>
+      <a href="https://{{ dd_host }}/llm/traces" target="_blank">LLM Observability →</a>
       <a href="https://{{ dd_host }}/dashboard/lists" target="_blank">Dashboards →</a>
     </div>
   </aside>
@@ -198,7 +199,7 @@ function fill(c,j){
     const g=j.eval_score!=null?j.eval_score:0;
     const f=document.createElement('div');f.className='cfoot';
     f.innerHTML=`<span class="gauge">grounding <span class="bar"><i style="width:${g*100}%;background:${g<0.5?'var(--p1)':'var(--ink)'}"></i></span> ${j.eval_score}</span>
-      <span>$${j.cost_usd}</span><span>${j.latency_ms}ms</span><span>${j.bedrock_calls} calls</span>`;
+      <span>$${j.cost_usd}</span><span>${j.latency_ms}ms</span><span>${j.bedrock_calls} calls</span>${j.recalled?`<span>↺ ${j.recalled} recalled</span>`:''}`;
     c.appendChild(f);
     n++;costSum+=j.cost_usd||0;if(j.eval_score!=null){gSum+=j.eval_score;gN++;}if(j.withheld)withheld++;
     s_count.textContent=n;s_ground.textContent=gN?(gSum/gN).toFixed(2):'—';

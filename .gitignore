@@ -32,3 +32,6 @@ crash.log
 *.swp
 .idea/
 .vscode/
+
+# runtime state (LLM-wiki memory)
+data/
