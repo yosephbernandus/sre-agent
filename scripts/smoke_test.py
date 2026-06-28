@@ -40,7 +40,7 @@ def check(name, cond, detail=""):
 
 def turn(msg):
     r = run_turn(msg, history, config, router)
-    print(f"   → kind={r.kind} withheld={r.withheld} score={r.eval_score} "
+    print(f"   -> kind={r.kind} withheld={r.withheld} score={r.eval_score} "
           f"domain={r.domain} model={r.model.split('.')[-1]} tools={r.tools_used}")
     return r
 
@@ -67,7 +67,7 @@ check("recommendation generated", has_reco, "(needs a withheld turn first)")
 print("\n[5] Apply recommendation")
 r = turn("apply")
 applied = router.get_model("db") == "us.amazon.nova-pro-v1:0"
-check("apply updates routing (db→nova-pro)", applied or not has_reco,
+check("apply updates routing (db->nova-pro)", applied or not has_reco,
       f"(db now {router.get_model('db').split('.')[-1]})")
 
 LLMObs.flush()

@@ -32,7 +32,7 @@ _PRICING = {
 }
 _DEFAULT_PRICING = (0.000035, 0.00014)
 
-# Keyword → domain classification
+# Keyword -> domain classification
 _DOMAIN_KEYWORDS = {
     "db": ("database", "db", "postgres", "mysql", "rds", "query", "deadlock", "connection pool"),
     "network": ("network", "dns", "timeout", "latency", "packet", "load balancer", "elb", "connectivity"),
@@ -198,7 +198,7 @@ def run_turn(
     for _ in range(config.max_iterations):
         # Force a tool call on the first turn so the agent always gathers
         # evidence before answering (Nova Micro/Lite otherwise sometimes skips
-        # tools and answers from nothing → firewall withholds). Later turns use
+        # tools and answers from nothing -> firewall withholds). Later turns use
         # auto so the model can actually finish.
         force_tool = calls == 0
         tool_config = (

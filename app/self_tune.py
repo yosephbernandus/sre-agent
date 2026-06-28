@@ -3,7 +3,7 @@ model-routing change, which a human can then apply.
 
 The recommendation is computed from the rolling in-memory turn log (reliable),
 while a Datadog MCP metrics query is also issued so the agent demonstrably reads
-its *own* observability (the "observe → understand → operate" loop). Decorated
+its *own* observability (the "observe -> understand -> operate" loop). Decorated
 `@workflow` so it shows as its own trace.
 """
 
@@ -60,7 +60,7 @@ def is_self_tune_trigger(lowered_message: str) -> bool:
 
 
 def _aggregate() -> dict[str, dict]:
-    """Group recent turns by domain → {n, withheld, avg_score, model}."""
+    """Group recent turns by domain -> {n, withheld, avg_score, model}."""
     by_domain: dict[str, dict] = {}
     for t in state.RECENT_TURNS:
         d = by_domain.setdefault(

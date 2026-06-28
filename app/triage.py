@@ -28,7 +28,7 @@ def _extract(payload: dict) -> dict:
         "query": g("query", "alert_query"),
         "tags": g("tags"),
         "priority": g("priority", "alert_priority"),
-        "link": g("link", "url", "event_url"),  # Datadog $LINK → the alert event page
+        "link": g("link", "url", "event_url"),  # Datadog $LINK -> the alert event page
     }
 
 

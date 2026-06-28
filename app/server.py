@@ -96,7 +96,7 @@ async def reset():
 
 @app.post("/triage")
 async def triage_endpoint(request: Request):
-    """Datadog monitor webhook → auto-triage → Slack. Point C."""
+    """Datadog monitor webhook -> auto-triage -> Slack. Point C."""
     if config.triage_token:
         if request.headers.get("X-Triage-Token") != config.triage_token:
             return JSONResponse({"error": "unauthorized"}, status_code=401)
