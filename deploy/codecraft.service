@@ -1,0 +1,22 @@
+[Unit]
+Description=CodeCraft SRE Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Production ASGI: uvicorn (canonical CLI), supervised by systemd.
+# --workers 1 is intentional: the agent keeps conversation/routing/self-tune
+#   state in-memory (app/state.py). Scaling past 1 worker needs an external
+#   store (Redis) — out of scope for the hackathon.
+# uvicorn has no hard per-request timeout, so long agent turns (several
+#   Bedrock+MCP calls, 5-7s+) aren't killed.
+# --proxy-headers: honor X-Forwarded-* if a proxy/ALB is ever put in front.
+# app.server loads app.env via load_dotenv at import (no EnvironmentFile needed).
+WorkingDirectory=/home/ec2-user/sre-agent
+ExecStart=/home/ec2-user/sre-agent/.venv/bin/uvicorn app.server:app \
+  --host 0.0.0.0 --port 80 --workers 1 --proxy-headers --timeout-keep-alive 30
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
