@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-shot ship + restart for the CodeCraft SRE Agent on EC2.
 #   Usage: PEM=path/to/ft-oncall.pem IP=<public-ip-or-dns> bash deploy/deploy.sh
-# Ships code (not app.env — that's set once at provision time, see DEPLOY.md).
+# Ships code (not app.env - that's set once at provision time, see DEPLOY.md).
 set -euo pipefail
 
 IP="${IP:?set IP=<ec2 public ip or dns>}"

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CodeCraft — On-Call SRE</title>
+<title>CodeCraft - On-Call SRE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
     --bg:#0a0a0b; --surface:#111113; --surface2:#0d0d0f; --raised:#16161a;
     --hair:rgba(255,255,255,.10); --hair2:rgba(255,255,255,.16);
     --fg:#f3f3f4; --mut:#abacb4; --faint:#7c7c86;
-    --ink:#ffffff;                       /* the only "accent" — high-contrast mono */
+    --ink:#ffffff;                       /* the only "accent" - high-contrast mono */
     --p1:#ff5d62; --p2:#f0a23a; --p3:#b7b8c0; --p4:#85858f;
     --sans:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
   }
@@ -133,7 +133,7 @@
       <div class="lbl">Incident Console</div>
       <form id="f">
         <div class="inwrap"><span class="pfx">/</span>
-          <input id="m" autocomplete="off" placeholder="describe an incident — vague queries are withheld by the firewall">
+          <input id="m" autocomplete="off" placeholder="describe an incident - vague queries are withheld by the firewall">
         </div>
         <button class="send" id="send" type="submit">Investigate</button>
         <button class="ghost" id="reset" type="button">Clear</button>
@@ -148,12 +148,12 @@
 
     <div class="stats">
       <div class="stat"><div class="v" id="s-count">0</div><div class="k">Investigations</div></div>
-      <div class="stat"><div class="v" id="s-ground">—</div><div class="k">Avg grounding</div></div>
+      <div class="stat"><div class="v" id="s-ground">-</div><div class="k">Avg grounding</div></div>
       <div class="stat"><div class="v" id="s-cost">$0</div><div class="k">Cost</div></div>
       <div class="stat"><div class="v" id="s-withheld">0</div><div class="k">Withheld</div></div>
     </div>
 
-    <div id="feed"><div class="empty" id="empty">no investigations yet — describe an incident above</div></div>
+    <div id="feed"><div class="empty" id="empty">no investigations yet - describe an incident above</div></div>
   </main>
 </div>
 
@@ -202,7 +202,7 @@ function fill(c,j){
       <span>$${j.cost_usd}</span><span>${j.latency_ms}ms</span><span>${j.bedrock_calls} calls</span>${j.recalled?`<span>↺ ${j.recalled} recalled</span>`:''}`;
     c.appendChild(f);
     n++;costSum+=j.cost_usd||0;if(j.eval_score!=null){gSum+=j.eval_score;gN++;}if(j.withheld)withheld++;
-    s_count.textContent=n;s_ground.textContent=gN?(gSum/gN).toFixed(2):'—';
+    s_count.textContent=n;s_ground.textContent=gN?(gSum/gN).toFixed(2):'-';
     s_cost.textContent='$'+costSum.toFixed(4);s_withheld.textContent=withheld;
   } else { c.querySelector('.ctag').textContent=j.kind.replace('_',' '); }
   if(j.routing)renderRoutes(j.routing);

@@ -3,7 +3,7 @@
 Design note: the spec calls for `datadog.statsd`, but statsd requires a local
 Datadog Agent which we do not run (agentless hackathon environment). We instead
 use the `datadog` library's HTTP API submission (`datadog.api.Metric.send`),
-which is agentless and uses the same dependency. Metrics never raise — a
+which is agentless and uses the same dependency. Metrics never raise - a
 telemetry failure must not break a user's turn.
 """
 

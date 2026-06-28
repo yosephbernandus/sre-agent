@@ -4,7 +4,7 @@ A separate (cheap) Bedrock call scores how well the agent's answer is grounded
 in the evidence it actually retrieved. The score is submitted to Datadog LLM
 Observability as an evaluation and attached to the active span. If the score is
 below the configured threshold, the answer is withheld and the user is told to
-escalate — this is the output guardrail.
+escalate - this is the output guardrail.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ _JUDGE_SYSTEM = [
 _NUM_RE = re.compile(r"(\d*\.?\d+)")
 
 ESCALATION_MESSAGE = (
-    "Answer withheld — the assistant could not ground this response in retrieved "
+    "Answer withheld - the assistant could not ground this response in retrieved "
     "evidence (low confidence). Escalating to a human on-call engineer rather than "
     "risk a hallucinated root cause."
 )
@@ -71,7 +71,7 @@ def judge_grounding(answer: str, evidence: str, config: Config) -> float:
         return max(0.0, min(1.0, score))
     except Exception as exc:
         logger.warning("Judge call failed (%s); defaulting score to 0.5", exc)
-        return 0.5  # neutral on judge failure — don't block on infra error
+        return 0.5  # neutral on judge failure - don't block on infra error
 
 
 def _submit_evaluation(score: float) -> None:

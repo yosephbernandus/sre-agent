@@ -10,12 +10,12 @@ provider "datadog" {
   api_url = var.datadog_api_url
 }
 
-# CodeCraft — Observable SRE Agent dashboard.
+# CodeCraft - Observable SRE Agent dashboard.
 # Combines: custom sre_agent.* metrics, Datadog LLM Obs built-ins (ml_obs.*),
 # and agent/MCP trace metrics. Scoped by the $ml_app template variable where the
 # metric carries an ml_app tag.
 resource "datadog_dashboard" "codecraft_sre" {
-  title       = "CodeCraft — Observable SRE Agent"
+  title       = "CodeCraft - Observable SRE Agent"
   description = "Self-tuning observable SRE on-call agent: cost, tokens, latency, MCP tool calls, grounding/firewall, guardrails, errors."
   layout_type = "ordered"
 
@@ -148,7 +148,7 @@ resource "datadog_dashboard" "codecraft_sre" {
   }
   widget {
     timeseries_definition {
-      title = "Answer quality SLI — grounded vs total"
+      title = "Answer quality SLI - grounded vs total"
       request {
         q            = "sum:sre_agent.answer.grounded{*}.as_count()"
         display_type = "bars"

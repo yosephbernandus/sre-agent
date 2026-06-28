@@ -2,7 +2,7 @@
 
 A Datadog webhook POSTs the alert here; we build an incident prompt, run the
 agent (so it investigates via MCP + firewall + records to the ops-memory wiki),
-and post the triage to Slack. Advisory + read-only — never changes the system.
+and post the triage to Slack. Advisory + read-only - never changes the system.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def _extract(payload: dict) -> dict:
-    """Be lenient about the webhook shape — pull what we can."""
+    """Be lenient about the webhook shape - pull what we can."""
     g = lambda *ks: next((str(payload[k]) for k in ks if payload.get(k)), "")
     return {
         "title": g("title", "alert_title", "event_title") or "Datadog alert",
@@ -75,13 +75,13 @@ def post_slack(config: Config, alert: dict, result) -> bool:
     if not config.slack_webhook_url:
         return False
     status = (
-        ":no_entry: WITHHELD — escalated to human (ungrounded)"
+        ":no_entry: WITHHELD - escalated to human (ungrounded)"
         if result.withheld
         else f"grounding {result.eval_score}"
     )
     tools = ", ".join(t.replace("search_datadog_", "") for t in result.tools_used) or "none"
     text = (
-        f":rotating_light: *CodeCraft Auto-Triage* — {alert['title']}\n"
+        f":rotating_light: *CodeCraft Auto-Triage* - {alert['title']}\n"
         f"{result.display_text}\n"
         f"_{status} · domain {result.domain} · {result.model.split('.')[-1]} · "
         f"{result.latency_ms}ms · tools: {tools}_\n"

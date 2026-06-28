@@ -1,8 +1,8 @@
-"""Ops Memory Wiki — a compounding markdown knowledge base (Karpathy "LLM-Wiki"
+"""Ops Memory Wiki - a compounding markdown knowledge base (Karpathy "LLM-Wiki"
 pattern) that the agent maintains and reads back. No vector DB: plain markdown +
 keyword/domain matching (RAG-lite).
 
-- remember(): append a structured incident entry — only for grounded answers, so
+- remember(): append a structured incident entry - only for grounded answers, so
   we never memorize hallucinations.
 - recall(): before a new investigation, find past incidents in the same domain
   whose symptom overlaps the new query, and return them as context so the agent
@@ -75,7 +75,7 @@ def _entries() -> list[dict]:
 def recall(domain: str, query: str, k: int = 3) -> str:
     """Return up to k past incidents (same domain) most similar to the query.
 
-    Empty string if nothing relevant. Pure keyword overlap — no model, no vector DB.
+    Empty string if nothing relevant. Pure keyword overlap - no model, no vector DB.
     """
     q = _tokens(query)
     scored = []
@@ -96,4 +96,4 @@ def read_all() -> str:
         with open(_WIKI) as f:
             return f.read()
     except FileNotFoundError:
-        return "# CodeCraft Ops Memory\n\n(empty — no investigations recorded yet)\n"
+        return "# CodeCraft Ops Memory\n\n(empty - no investigations recorded yet)\n"

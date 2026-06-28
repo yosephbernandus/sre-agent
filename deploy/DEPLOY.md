@@ -1,4 +1,4 @@
-# Deploy — CodeCraft SRE Agent on EC2
+# Deploy - CodeCraft SRE Agent on EC2
 
 Runbook for hosting the agent on the hackathon AWS account. Self-contained.
 
@@ -26,11 +26,11 @@ PEM=deploy/ft-oncall.pem        # created/placed in Step 0 below
 
 ---
 
-## Step 0 — SSH key pair + security group (one-time)
+## Step 0 - SSH key pair + security group (one-time)
 
 Create the key pair. The `.pem` private key is only downloadable at creation, so
 this writes it to `deploy/ft-oncall.pem` (gitignored). If a key named `ft-oncall`
-already exists, delete it first — its private half can't be re-downloaded.
+already exists, delete it first - its private half can't be re-downloaded.
 ```bash
 aws ec2 delete-key-pair --key-name ft-oncall 2>/dev/null
 aws ec2 create-key-pair --key-name ft-oncall \
@@ -54,7 +54,7 @@ echo "SG=$SG   # use this id in Step 1"
 
 ---
 
-## Step 1 — launch instance
+## Step 1 - launch instance
 ```bash
 MYIP=$(curl -s https://checkip.amazonaws.com)
 aws ec2 authorize-security-group-ingress --group-id sg-08ab6f6015c0195a5 \
@@ -71,15 +71,15 @@ DNS=$(aws ec2 describe-instances --instance-ids $IID \
 echo "instance=$IID  url=http://$DNS"
 ```
 
-## Step 2 — ship code + env
+## Step 2 - ship code + env
 ```bash
 cd sre-agent
 zip -qr /tmp/sre.zip app templates scripts requirements.txt -x '*/__pycache__/*'
 scp -i $PEM -o StrictHostKeyChecking=accept-new /tmp/sre.zip ec2-user@$DNS:/home/ec2-user/sre.zip
-scp -i $PEM app.env ec2-user@$DNS:/home/ec2-user/app.env       # secrets — over SSH only, never S3/git
+scp -i $PEM app.env ec2-user@$DNS:/home/ec2-user/app.env       # secrets - over SSH only, never S3/git
 ```
 
-## Step 3 — provision on the box (over SSH)
+## Step 3 - provision on the box (over SSH)
 ```bash
 ssh -i $PEM ec2-user@$DNS 'bash -s' <<'REMOTE'
 set -e
@@ -110,12 +110,12 @@ REMOTE
 ```
 (The systemd unit is also kept at `deploy/codecraft.service`.)
 
-## Step 4 — open it
+## Step 4 - open it
 ```
 http://<PublicDnsName>      # e.g. http://ec2-98-93-5-140.compute-1.amazonaws.com
 ```
 
-## Step 5 — (optional) seed Datadog + create dashboard/monitors
+## Step 5 - (optional) seed Datadog + create dashboard/monitors
 Run locally or on the box (same Datadog us5 account):
 ```bash
 .venv/bin/python scripts/seed_telemetry.py
@@ -125,7 +125,7 @@ Run locally or on the box (same Datadog us5 account):
 
 ---
 
-## Updating code later (fresh terminal — nothing cached)
+## Updating code later (fresh terminal - nothing cached)
 
 From a terminal where no env vars are set, this is the full, self-contained
 redeploy. No secrets in these commands (instance id / pem path / profile name
@@ -134,7 +134,7 @@ are not secrets):
 export AWS_PROFILE=hackathon AWS_REGION=us-east-1
 cd <repo>/jkt-hackathon-2026/sre-agent
 
-# find the running instance BY TAG (no hardcoded id — survives relaunch) + its IP
+# find the running instance BY TAG (no hardcoded id - survives relaunch) + its IP
 IP=$(aws ec2 describe-instances \
      --filters "Name=tag:Name,Values=codecraft-sre" "Name=instance-state-name,Values=running" \
      --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
@@ -145,15 +145,15 @@ PEM=deploy/ft-oncall.pem IP=$IP bash deploy/deploy.sh
 
 ## From a brand-new laptop (first-time setup)
 Secrets are NOT in the repo. On a new machine you must re-supply them:
-1. **AWS profile** — `aws configure --profile hackathon` (paste the hackathon
+1. **AWS profile** - `aws configure --profile hackathon` (paste the hackathon
    access key/secret from your password manager; never commit them).
-2. **SSH key** — you need `ft-oncall.pem`. The private key can't be
+2. **SSH key** - you need `ft-oncall.pem`. The private key can't be
    re-downloaded; if you don't have it, create a fresh key pair (Step 0) and
    relaunch, or copy the `.pem` from a secure backup to `deploy/ft-oncall.pem`
    (`chmod 600`).
-3. **`app.env`** — `cp app.env.template app.env` then fill the real values
+3. **`app.env`** - `cp app.env.template app.env` then fill the real values
    (DD keys, AWS keys, `SLACK_WEBHOOK_URL`, `FT_TRIAGE_TOKEN`) from your
-   password manager. `app.env` is gitignored — keep it that way.
+   password manager. `app.env` is gitignored - keep it that way.
 4. Then run the redeploy block above. (If the instance was terminated, do
    Step 1 to relaunch first.)
 
@@ -181,5 +181,5 @@ aws ec2 terminate-instances --instance-ids $IID   # delete when fully done
 1. **`app.env` = plain `KEY=value`** (no `export`, no inline `#`). Read by `load_dotenv`.
 2. **Public IP/DNS changes on stop→start.** Re-fetch `PublicDnsName`; re-point SG `:22` at your current IP.
 3. **`iam:PassRole` + `ssm:*` denied** → no instance role (keys in `app.env`), SSH only.
-4. **No HTTPS without a domain** — CloudFront/ECS denied on this account. Use the EC2 public DNS (http) for the demo.
+4. **No HTTPS without a domain** - CloudFront/ECS denied on this account. Use the EC2 public DNS (http) for the demo.
 5. **Rotate `DD_API_KEY` / `DD_APP_KEY`** after the event.

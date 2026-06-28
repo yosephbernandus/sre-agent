@@ -7,15 +7,15 @@ performance to recommend routing improvements.
 
 ## Features
 
-- **Incident Investigation** — Agentic tool-use loop queries Datadog logs, metrics,
+- **Incident Investigation** - Agentic tool-use loop queries Datadog logs, metrics,
   and monitors via MCP for grounded answers.
-- **Hallucination Firewall** — Every response is evaluated for grounding quality;
+- **Hallucination Firewall** - Every response is evaluated for grounding quality;
   ungrounded answers are withheld and escalated.
-- **Bedrock Guardrails** — Input filtering for PII and prompt injection.
-- **Model Router** — Routes incident domains (db, network, app, infra) to the
+- **Bedrock Guardrails** - Input filtering for PII and prompt injection.
+- **Model Router** - Routes incident domains (db, network, app, infra) to the
   optimal Bedrock model.
-- **Self-Tune** — Reads its own observability metrics and recommends routing changes.
-- **Full Observability** — Every interaction traced in Datadog LLM Obs with custom
+- **Self-Tune** - Reads its own observability metrics and recommends routing changes.
+- **Full Observability** - Every interaction traced in Datadog LLM Obs with custom
   metrics (cost, latency, calls, hallucination rate).
 
 ## Quick Start
@@ -47,7 +47,7 @@ uvicorn app.server:app --host 0.0.0.0 --port 8080 --reload
 ```
 
 The chat UI is available at `http://localhost:8080/`. In production the systemd
-unit runs `uvicorn ... --workers 1 --proxy-headers` (1 worker is required — state
+unit runs `uvicorn ... --workers 1 --proxy-headers` (1 worker is required - state
 is in-memory; see `deploy/DEPLOY.md`).
 
 ## API Endpoints
@@ -137,12 +137,12 @@ See `app.env.template` for the full list. Key variables:
 
 | Variable                  | Required | Default                          |
 |---------------------------|----------|----------------------------------|
-| `AWS_ACCESS_KEY_ID`       | Yes      | —                                |
-| `AWS_SECRET_ACCESS_KEY`   | Yes      | —                                |
+| `AWS_ACCESS_KEY_ID`       | Yes      | -                                |
+| `AWS_SECRET_ACCESS_KEY`   | Yes      | -                                |
 | `AWS_REGION`              | No       | `us-east-1`                      |
 | `BEDROCK_MODEL_DEFAULT`   | No       | `us.amazon.nova-micro-v1:0`      |
-| `DD_API_KEY`              | Yes      | —                                |
-| `DD_APP_KEY`              | Yes      | —                                |
+| `DD_API_KEY`              | Yes      | -                                |
+| `DD_APP_KEY`              | Yes      | -                                |
 | `DD_SITE`                 | No       | `us5.datadoghq.com`              |
 | `DD_MCP_URL`              | No       | MCP endpoint for us5             |
 | `DD_LLMOBS_ML_APP`        | No       | `sre-oncall-agent`               |
@@ -163,6 +163,6 @@ PEM=deploy/ft-oncall.pem IP=<public-dns> bash deploy/deploy.sh
 **Notes**
 - `app.env` uses plain `KEY=value` (no `export`, no inline `#`); it's read by
   `load_dotenv` at startup.
-- No EC2 instance role (`iam:PassRole` denied) — the box uses AWS keys from `app.env`.
+- No EC2 instance role (`iam:PassRole` denied) - the box uses AWS keys from `app.env`.
 - No HTTPS without a domain (CloudFront/ECS denied on the hackathon account); use the
   EC2 public DNS over http for the demo.

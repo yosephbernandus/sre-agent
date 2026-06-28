@@ -7,7 +7,7 @@ Wants=network-online.target
 # Production ASGI: uvicorn (canonical CLI), supervised by systemd.
 # --workers 1 is intentional: the agent keeps conversation/routing/self-tune
 #   state in-memory (app/state.py). Scaling past 1 worker needs an external
-#   store (Redis) — out of scope for the hackathon.
+#   store (Redis) - out of scope for the hackathon.
 # uvicorn has no hard per-request timeout, so long agent turns (several
 #   Bedrock+MCP calls, 5-7s+) aren't killed.
 # --proxy-headers: honor X-Forwarded-* if a proxy/ALB is ever put in front.

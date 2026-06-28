@@ -1,4 +1,4 @@
-"""Shared agent state — persisted to disk so it survives a process/systemd
+"""Shared agent state - persisted to disk so it survives a process/systemd
 restart (only an instance terminate, which wipes the disk, loses it). No Redis:
 plain files on the local filesystem.
 

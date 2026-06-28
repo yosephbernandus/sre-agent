@@ -1,9 +1,9 @@
 """Input guardrails: PII + prompt-injection.
 
 Two layers:
-1. Primary — Amazon Bedrock Guardrails via `guardrailConfig` on `converse()`
+1. Primary - Amazon Bedrock Guardrails via `guardrailConfig` on `converse()`
    (when a guardrail ID is configured). Bedrock filters PII / prompt attacks.
-2. Fallback — regex PII detection + prompt-injection keyword check, used when no
+2. Fallback - regex PII detection + prompt-injection keyword check, used when no
    guardrail ID is set (so the safety story holds even without a provisioned
    Bedrock guardrail).
 
@@ -81,7 +81,7 @@ def check_input(text: str, config: Config) -> GuardrailResult:
             redacted.append(label)
 
     if redacted:
-        # Not a hard block — redact and continue, but flag it.
+        # Not a hard block - redact and continue, but flag it.
         return GuardrailResult(
             blocked=False,
             reason=f"redacted: {', '.join(redacted)}",

@@ -31,7 +31,7 @@ def _narrate(config: Config, facts: str) -> str:
     """LLM writes a 1-2 sentence explanation of the (already-decided) analysis.
 
     The decision + numbers are computed deterministically; the model only
-    explains them — it must not change any number or decision. Fails soft.
+    explains them - it must not change any number or decision. Fails soft.
     """
     try:
         import boto3
@@ -41,7 +41,7 @@ def _narrate(config: Config, facts: str) -> str:
             "You are an SRE platform analyst. Below is a deterministic performance "
             "analysis of an AI agent and the routing decision already made. In 1-2 "
             "sentences, explain to the on-call engineer what's happening and why the "
-            "decision makes sense. Use ONLY the numbers/decision below — do not invent "
+            "decision makes sense. Use ONLY the numbers/decision below - do not invent "
             "or change anything.\n\n" + facts
         )
         resp = client.converse(
@@ -96,7 +96,7 @@ def analyze_performance(config: Config, mcp_client: DatadogMCPClient | None) -> 
     by_domain = _aggregate()
     if not by_domain:
         state.set_recommendation(None)
-        return ("Not enough data yet — investigate a few incidents first "
+        return ("Not enough data yet - investigate a few incidents first "
                 "(including some that get withheld), then ask me to analyze again." + mcp_note)
 
     # Pick the worst domain currently on a cheap model.
@@ -130,7 +130,7 @@ def analyze_performance(config: Config, mcp_client: DatadogMCPClient | None) -> 
     else:
         state.set_recommendation(None)
         lines.append("")
-        lines.append("No routing change needed — grounding is healthy across domains.")
+        lines.append("No routing change needed - grounding is healthy across domains.")
 
     facts = "\n".join(lines)
     note = _narrate(config, facts)
@@ -142,7 +142,7 @@ def apply_last_recommendation(router: ModelRouter) -> str:
     """Apply the last recommendation to the router, if any."""
     rec = state.LAST_RECOMMENDATION
     if not rec:
-        return "Nothing to apply — run an analysis first (\"analyze my performance\")."
+        return "Nothing to apply - run an analysis first (\"analyze my performance\")."
     router.apply_recommendation(rec["domain"], rec["to_model"])
     state.set_recommendation(None)
     return (f"Applied: {rec['domain']} incidents now route to {_short(rec['to_model'])}. "

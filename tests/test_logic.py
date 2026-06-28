@@ -1,4 +1,4 @@
-"""Fast unit tests for pure logic — no network, no Bedrock, no cost.
+"""Fast unit tests for pure logic - no network, no Bedrock, no cost.
 
 Run either way:
     python tests/test_logic.py        # plain, prints PASS/FAIL

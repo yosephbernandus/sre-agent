@@ -41,7 +41,7 @@ WIDGETS = [
 ]
 
 dashboard = {
-    "title": "SRE On-Call Agent — Observable AI",
+    "title": "SRE On-Call Agent - Observable AI",
     "description": "Self-tuning observable SRE agent: cost, latency, grounding, guardrails.",
     "layout_type": "ordered",
     "widgets": WIDGETS,

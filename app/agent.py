@@ -46,7 +46,7 @@ _SYSTEM = [
             "You are an on-call SRE assistant for a production system. "
             "Investigate the incident the engineer describes. ALWAYS use the Datadog "
             "tools to gather live evidence (logs, metrics, monitors) before drawing a "
-            "conclusion — do not invent a root cause. Be concise: give SEVERITY (P1-P4), "
+            "conclusion - do not invent a root cause. Be concise: give SEVERITY (P1-P4), "
             "the most likely root cause grounded in what the tools returned, and one "
             "concrete next step. If the tools return no relevant evidence, say so plainly "
             "instead of guessing."
@@ -181,7 +181,7 @@ def run_turn(
     user_text = safe_message
     if prior:
         user_text += (
-            "\n\n[Prior incidents from ops memory — reuse the resolution if this matches]\n" + prior
+            "\n\n[Prior incidents from ops memory - reuse the resolution if this matches]\n" + prior
         )
     messages = list(history) + [{"role": "user", "content": [{"text": user_text}]}]
     bedrock = boto3.client("bedrock-runtime", region_name=config.aws_region)
@@ -216,7 +216,7 @@ def run_turn(
         try:
             resp = bedrock.converse(**kwargs)
         except Exception as exc:
-            # some models reject toolChoice:any — retry with auto
+            # some models reject toolChoice:any - retry with auto
             if force_tool:
                 logger.warning("toolChoice=any rejected (%s); retrying auto", exc)
                 kwargs["toolConfig"] = _TOOL_CONFIG
@@ -268,7 +268,7 @@ def run_turn(
 
     # ── output guardrail: hallucination firewall ──────────────────────────
     # Deterministic floor: if no tool returned substantive data, the answer can't
-    # be grounded — withhold without spending a judge call.
+    # be grounded - withhold without spending a judge call.
     meaningful = [
         p for p in evidence_parts
         if "No data returned" not in p and len(p.strip()) > 80
